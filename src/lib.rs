@@ -15,15 +15,18 @@ use generic_array::GenericArray;
 ///
 /// ```rust
 /// extern crate sha2;
+/// extern crate digest;
+/// extern crate digest_writer;
 /// use std::fs::File;
 /// use std::io::{self, Write};
-/// use sha2::Sha256;
+/// use digest::Digest;
 /// use digest_writer::Writer;
-///
-/// let mut digest = Writer::new(Sha256::new());
-/// let mut f = File::open("lib.rs").unwrap();
-/// io::copy(f, &mut digest).unwrap();
+/// # fn main() {
+/// let mut digest = Writer::new(sha2::Sha256::new());
+/// let mut f = File::open("LICENSE-MIT").unwrap();
+/// io::copy(&mut f, &mut digest).unwrap();
 /// digest.result();
+/// # }
 /// ```
 pub struct Writer<D>(D);
 
