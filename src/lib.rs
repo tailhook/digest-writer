@@ -36,6 +36,14 @@ impl<D: Digest> Writer<D> {
     pub fn new(d: D) -> Writer<D> {
         Writer(d)
     }
+    /// Returns a reference to underlying Digest object
+    pub fn get_ref(&self) -> &D {
+        &self.0
+    }
+    /// Returns a mutable reference to underlying Digest object
+    pub fn get_mut(&mut self) -> &D {
+        &mut self.0
+    }
     /// Return the original Digest
     pub fn into_inner(self) -> D {
         self.0
