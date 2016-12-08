@@ -28,6 +28,7 @@ use generic_array::GenericArray;
 /// digest.result();
 /// # }
 /// ```
+#[derive(Debug, Clone)]
 pub struct Writer<D>(D);
 
 impl<D: Digest> Writer<D> {
