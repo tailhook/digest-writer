@@ -41,7 +41,7 @@ impl<D: Digest> Writer<D> {
         &self.0
     }
     /// Returns a mutable reference to underlying Digest object
-    pub fn get_mut(&mut self) -> &D {
+    pub fn get_mut(&mut self) -> &mut D {
         &mut self.0
     }
     /// Return the original Digest
