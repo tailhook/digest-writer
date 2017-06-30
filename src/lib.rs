@@ -6,8 +6,9 @@ extern crate generic_array;
 
 use std::io;
 
-use digest::Digest;
-use generic_array::GenericArray;
+use generic_array::{ArrayLength, GenericArray};
+use digest::InvalidLength;
+pub use digest::{Input, BlockInput, FixedOutput, VariableOutput};
 
 /// A wrapper around Digest type that allows to use Write trait for hashing
 ///
@@ -19,19 +20,19 @@ use generic_array::GenericArray;
 /// extern crate digest_writer;
 /// use std::fs::File;
 /// use std::io::{self, Write};
-/// use digest::Digest;
+/// use digest::FixedOutput;
 /// use digest_writer::Writer;
 /// # fn main() {
-/// let mut digest = Writer::new(sha2::Sha256::new());
+/// let mut digest = Writer::new(sha2::Sha256::default());
 /// let mut f = File::open("LICENSE-MIT").unwrap();
 /// io::copy(&mut f, &mut digest).unwrap();
-/// digest.result();
+/// digest.fixed_result();
 /// # }
 /// ```
 #[derive(Debug, Clone)]
 pub struct Writer<D>(D);
 
-impl<D: Digest> Writer<D> {
+impl<D: Input + FixedOutput> Writer<D> {
     /// Wrap a Digest into a Writer
     pub fn new(d: D) -> Writer<D> {
         Writer(d)
@@ -50,10 +51,10 @@ impl<D: Digest> Writer<D> {
     }
 }
 
-impl<D: Digest> io::Write for Writer<D> {
+impl<D: Input> io::Write for Writer<D> {
 
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.0.input(buf);
+        self.0.process(buf);
         Ok(buf.len())
     }
     fn flush(&mut self) -> io::Result<()> {
@@ -61,26 +62,30 @@ impl<D: Digest> io::Write for Writer<D> {
     }
 }
 
-impl<D: Digest> Digest for Writer<D> {
-    type OutputSize = D::OutputSize;
-    type BlockSize = D::BlockSize;
-    fn input(&mut self, input: &[u8]) {
-        self.0.input(input);
+impl<D: Input> Input for Writer<D> {
+    fn process(&mut self, input: &[u8]) {
+        self.0.process(input);
     }
-    fn result(self) -> GenericArray<u8, Self::OutputSize> {
-        self.0.result()
-    }
+}
 
-    fn block_bytes(&self) -> usize {
-        self.0.block_bytes()
+impl<D> BlockInput for Writer<D>
+    where D: BlockInput, D::BlockSize: ArrayLength<u8>
+{
+    type BlockSize = D::BlockSize;
+}
+
+impl<D> FixedOutput for Writer<D>
+    where D: FixedOutput, D::OutputSize: ArrayLength<u8>
+{
+    type OutputSize = D::OutputSize;
+
+    fn fixed_result(self) -> GenericArray<u8, Self::OutputSize> {
+        self.0.fixed_result()
     }
-    fn block_bits(&self) -> usize {
-        self.0.block_bits()
-    }
-    fn output_bytes(&self) -> usize {
-        self.0.output_bytes()
-    }
-    fn output_bits(&self) -> usize {
-        self.0.output_bits()
+}
+
+impl<D: VariableOutput> VariableOutput for Writer<D> {
+    fn variable_result(self, buffer: &mut [u8]) -> Result<&[u8], InvalidLength> {
+        self.0.variable_result(buffer)
     }
 }
