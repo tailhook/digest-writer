@@ -85,6 +85,12 @@ impl<D> FixedOutput for Writer<D>
 }
 
 impl<D: VariableOutput> VariableOutput for Writer<D> {
+    fn new(output_size: usize) -> Result<Writer<D>, InvalidLength> {
+        D::new(output_size).map(Writer)
+    }
+    fn output_size(&self) -> usize {
+        self.0.output_size()
+    }
     fn variable_result(self, buffer: &mut [u8]) -> Result<&[u8], InvalidLength> {
         self.0.variable_result(buffer)
     }
