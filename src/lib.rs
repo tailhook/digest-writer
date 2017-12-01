@@ -1,6 +1,7 @@
 //!
 //!
 #![warn(missing_docs)]
+#![warn(missing_debug_implementations)]
 extern crate digest;
 extern crate generic_array;
 
@@ -8,7 +9,7 @@ use std::io;
 
 use generic_array::{ArrayLength, GenericArray};
 use digest::InvalidLength;
-pub use digest::{Input, BlockInput, FixedOutput, VariableOutput};
+pub use digest::{Input, BlockInput, FixedOutput, VariableOutput, Digest};
 
 /// A wrapper around Digest type that allows to use Write trait for hashing
 ///
@@ -29,7 +30,7 @@ pub use digest::{Input, BlockInput, FixedOutput, VariableOutput};
 /// digest.fixed_result();
 /// # }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Writer<D>(D);
 
 impl<D: Input + FixedOutput> Writer<D> {
